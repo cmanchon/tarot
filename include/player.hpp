@@ -42,6 +42,8 @@ class Player{
         int size_plis() const{return (int) plis.size();};
         int size_hand() const{return (int) hand.size();};
         int count_score() const{return plis.count_points();}
+        bool has_color_in_hand(char color) const{return hand.has_color(color);};
+        bool has_atout_higher_than(int value) const{return hand.has_atout_higher_than(value);};
 
         void sort_hand(){hand.sort();};
         void give_hand_card(Card C, Deck *receiver);

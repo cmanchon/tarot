@@ -25,6 +25,9 @@ class Deck{
         int nb_bouts() const;
 
         bool is_in(Card C) const;
+        bool has_color(char color) const;
+        bool has_atout_higher_than(int value) const;
+        int highest_atout() const;
 
         void add_card(Card C);
         void give_card(Deck *receiver);

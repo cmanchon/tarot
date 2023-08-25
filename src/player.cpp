@@ -172,6 +172,26 @@ int Player::check_contrat(int points, int nb_players){
         }
     }
 
+
+    //on check si le contrat a changé au cours de la partie (ie si le petit des défenseurs a été volé)
+    switch (plis.nb_bouts()){
+        case 0:
+            comb.contrat_value = 56;
+            break;
+        case 1:
+            comb.contrat_value = 51;
+            break;
+        case 2:
+            comb.contrat_value = 41;
+            break;
+        case 3:
+            comb.contrat_value = 36;
+            break;
+        
+        default:
+            break;
+    }   
+
     if (points >= comb.contrat_value){
         //win
         score += 3*score_tmp;

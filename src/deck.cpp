@@ -44,6 +44,8 @@ int Deck::nb_bouts() const{
 
 
 bool Deck::is_in(Card C) const{
+    if (C.get_color() == ' ')
+        return false;
     for (int i = 0 ; i < (int)deck.size() ; i++){
         if (C.get_value() == deck[i].get_value() && C.get_color() == deck[i].get_color()){
             return true;
@@ -51,6 +53,37 @@ bool Deck::is_in(Card C) const{
     }
     return false;
 }
+
+
+bool Deck::has_color(char color) const{
+    for (int i = 0 ; i < (int)deck.size() ; i++){
+        if (color == deck[i].get_color()){
+            return true;
+        }
+    }
+    return false;
+
+}
+
+bool Deck::has_atout_higher_than(int value) const{
+    for (int i = 0 ; i < (int)deck.size() ; i++){
+        if (deck[i].get_color() == 'A' && deck[i].get_value() > value){
+            return true;
+        }
+    }
+    return false;
+
+}
+
+int Deck::highest_atout() const{
+    int value = -1;
+    for (int i = 0 ; i < (int)deck.size() ; i++){
+        if (deck[i].get_color() == 'A' && deck[i].get_value() != 0 && deck[i].get_value() > value)
+            value = deck[i].get_value();
+    }
+    return value;
+}
+
 
 
 

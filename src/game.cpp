@@ -54,6 +54,8 @@ void Game::print_all_cards() const{
 Card Game::prompt_card() const{
     std::string prompt;
     std::getline(std::cin, prompt);
+    if (prompt == "Q")
+        exit(1);
     if (prompt == "Excuse" || prompt == "excuse")
         return {0, 'A'};
     int value;
@@ -95,7 +97,8 @@ int Game::plis_winner(int first_player) const{
     int res = first_player;
     for (int i = 0 ; i < jeu.size() ; i++){
         if ((jeu.get_card(i).get_value() > value && color != 'A' && jeu.get_card(i).get_color() == color) 
-        || (color == 'A' && jeu.get_card(i).get_color() == 'A' && value < jeu.get_card(i).get_value())){
+        || (color == 'A' && jeu.get_card(i).get_color() == 'A' && value < jeu.get_card(i).get_value())
+        || (color != 'A' && jeu.get_card(i).get_color() == 'A' && jeu.get_card(i).get_value() != 0)){
             value = jeu.get_card(i).get_value();
             color = jeu.get_card(i).get_color();
             res = (first_player + i) % players.size();
@@ -104,6 +107,77 @@ int Game::plis_winner(int first_player) const{
 
     return res;
 }
+
+
+bool Game::is_move_possible(Card C, int player_id) const{
+    if (C.get_color() == ' ')                   //non initialisée
+        return false;
+    if (jeu.size() == 0)
+        return true;
+    if (C.get_value() == 0 && C.get_color() == 'A')
+        return true;
+
+    char color;
+    if (jeu.get_card(0).get_value() != 0)
+        color = jeu.get_card(0).get_color();
+    else{       //première carte du jeu est l'excuse
+        if (jeu.size() == 1)
+            return true;
+        else
+            color = jeu.get_card(1).get_color();
+    }
+    int highest_atout = jeu.highest_atout();
+
+    if (color == 'A'){
+        if (C.get_color() == 'A'){
+            if (C.get_value() > highest_atout)
+                return true;
+            else{
+                if (players[player_id].has_atout_higher_than(highest_atout))
+                    return false;
+                else
+                    return true;
+            }
+        }
+        else{
+            if (players[player_id].has_atout_higher_than(0))            //on compte pas l'excuse
+                return false;
+            else
+                return true;
+        }
+    } 
+    else{
+        if (color == C.get_color())
+            return true;
+        else{
+            if (C.get_color() == 'A'){
+                if (players[player_id].has_color_in_hand(color))
+                    return false;
+                else{
+                    if (C.get_value() > highest_atout)
+                        return true;
+                    else{
+                        if (players[player_id].has_atout_higher_than(highest_atout))
+                            return false;
+                        else
+                            return true;
+                    }
+                }
+                    
+            }
+            else{
+                if (players[player_id].has_atout_higher_than(0))            //on compte pas l'excuse
+                    return false;
+                else 
+                    return true;
+            }
+        }
+    }
+
+    return true;
+
+}
+
 
 
 void Game::deal_cards(){
@@ -128,6 +202,13 @@ void Game::deal_cards(){
     }
 }
 
+void Game::undeal_cards(){
+    for (int i = 0 ; i < (int)players.size() ; i++){
+        players[i].get_hand()->give_all_cards(&deck);
+    }
+    chien.give_all_cards(&deck);
+}
+
 void Game::sort_hands(){
     for (int i = 0 ; i < (int) players.size() ; i++){
         players[i].sort_hand();
@@ -145,13 +226,13 @@ void Game::print_result(int score_def, int points_preneur) const{
         std::cout << " n'a pas réussi son contrat :\n\n";
     }
 
-    std::cout << BOLD << "\t" << points_preneur << END_FORMAT << " points remportés (" << players[id_preneur].get_comb().contrat_value << "points requis)\n";
+    std::cout << BOLD << "\t" << points_preneur << END_FORMAT << " points remportés (" << players[id_preneur].get_comb().contrat_value << " points requis)\n\n";
     std::cout << "\t+ 25\n";
     if (players[id_preneur].get_comb().petit_au_bout){
         std::cout << "\t+ 10\t\t petit au bout\n";
         points_preneur += 10;
     }
-    std::cout << "= " << points_preneur + 25 << "\n";
+    std::cout << "= " <<players[id_preneur].get_comb().contrat_value - points_preneur + 25 << "\n";
     switch (players[id_preneur].get_comb().contrat_type){
     case PRISE:
         std::cout <<"\t* 1\t\tprise\n";
@@ -252,6 +333,7 @@ void Game::start_game(){
                 std::cout << "\n\nNouveau mélange.\n";
                 sleep(SLEEPTIME);
 
+                undeal_cards();
                 deck.shuffle();
                 deal_cards();
                 i = -1;
@@ -385,7 +467,7 @@ void Game::game(){
                     break;
             }
 
-            while (!players[j].get_hand()->is_in(C) && l < 20){           //faut aussi check si cette carte peut être jouer...... à faire dans une méthode ig
+            do{
                 std::cout << CLEAR;
                 players[j].print(1);
                 std::cout << "\n\n";
@@ -398,7 +480,7 @@ void Game::game(){
                 C = prompt_card();
 
                 l++;
-            }   
+            } while ((!players[j].get_hand()->is_in(C) || !is_move_possible(C, j)) && l < 20);
 
             players[j].give_hand_card(C, &jeu);
             j++;

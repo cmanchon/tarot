@@ -25,8 +25,10 @@ class Game{
 
         Card prompt_card() const;
         int plis_winner(int first_player) const;
+        bool is_move_possible(Card C, int player_id) const;
 
         void deal_cards();
+        void undeal_cards();
         void sort_hands();
 
         void print_result(int score_def, int points_preneur) const;
