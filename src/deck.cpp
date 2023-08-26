@@ -24,12 +24,15 @@ Deck::Deck(std::string filename){
 }
 
 
-void Deck::print(std::string separator) const{
-    for (long unsigned int i = 0 ; i < deck.size() ; i++){
+void Deck::print(std::string separator, int start, int end) const{
+    if (end == -1) end = (int)deck.size();
+    for (int i = start ; i < end ; i++){
         deck[i].print();
         std::cout << separator;
     }
 }
+
+
 
 int Deck::nb_bouts() const{
     int bouts = 0; 
@@ -97,6 +100,16 @@ void Deck::give_card(Deck *receiver){
         deck.pop_back();
     }
 }
+
+void Deck::give_card(Deck *receiver, int start, int end){
+    if (deck.size() - (end-start) >= 0){
+        for (int i = start ; i < end ; i++){
+            receiver->add_card(deck[start]);
+            deck.erase(deck.begin() + start);
+        }
+    }
+}
+
 
 void Deck::give_card(Card C, Deck *receiver){
     for (int i = 0 ; i < (int)deck.size() ; i++){

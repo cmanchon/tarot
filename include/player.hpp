@@ -36,6 +36,7 @@ class Player{
         void print(int show_numbers = 0) const;
         void print_hand(int show_number = 0) const;
         void print_contrat() const;
+        void print_contrat(int contrat) const;
         Deck* get_hand() {return &hand;};
         Deck* get_plis() {return &plis;};
         Comb get_comb() const {return comb;};

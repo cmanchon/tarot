@@ -43,6 +43,31 @@ void Player::print_contrat() const{
     }
 }
 
+void Player::print_contrat(int contrat) const{
+    switch (contrat)
+    {
+    case PASSE:
+        std::cout << "PASSE";
+        break;
+    case PRISE:
+        std::cout << "PRISE";
+        break;
+    case GARDE:
+        std::cout << "GARDE";
+        break;
+    case GARDE_SANS:
+        std::cout << "GARDE SANS";
+        break;
+    case GARDE_CONTRE:
+        std::cout << "GARDE_CONTRE";
+        break;
+    
+    default:
+        break;
+    }
+
+}
+
 
 
 void Player::give_hand_card(Card C, Deck *receiver){

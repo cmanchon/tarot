@@ -235,8 +235,10 @@ void Game::deal_cards(){
         deal_by = 4;
     else if (players.size() == 5)
         chien_max_size = 3;
-    else if (players.size() == 2)
-        chien_max_size = 6;
+    else if (players.size() == 2){
+        chien_max_size = 12;
+        deal_by = 2;
+    }
 
     while (deck.size() > 0){
         for (int i = 0 ; i < (int)players.size() ; i++){
@@ -357,6 +359,12 @@ void Game::start_game(){
             players[i].print();
             players[i].print_hand();
 
+            if (highest_choix > PASSE){
+                std::cout << "\n\nLe joueur " << BOLD << ind_highest+1 << END_FORMAT << " a pris une ";
+                players[ind_highest].print_contrat(highest_choix);
+                std::cout << ".";
+            }
+
             std::cout << "\n\nQue faire ?\n";
             std::cout << "  0\t  1\t  2\t  3\t\t  4\n";
             std::cout << "PASSER\tPRISE\tGARDE\tGARDE SANS\tGARDE CONTRE\n\nChoix : ";
@@ -403,6 +411,7 @@ void Game::start_game(){
     std::cout << CLEAR;
     std::cout << "Le joueur " << BOLD << id_preneur+1 << END_FORMAT << " a pris une ";
     players[id_preneur].print_contrat();
+    std::cout << ".\n";
     sort_hands();
 
     if (players.size() == 5 && APPEL_ROI_BEFORE_ECART){
@@ -412,15 +421,53 @@ void Game::start_game(){
 
     int l = 0;
     int ecart_size = (int)chien.size();
+    if (players.size() == 2)
+        ecart_size = 6;
     if (highest_choix == PRISE || highest_choix == GARDE){
-        std::cout << ".\nIl obtient le chien :\n";
-        chien.print("\t"); 
+        if (players.size() == 2){
+            //le preneur choisit le chien sans le voir
+            std::cout << "\nLe preneur a le choix entre 2 chiens :\n\n";
+            std::cout << "\t\t1\t2\n";
+            std::cout << "\t█ █ █ █ █ █\t█ █ █ █ █ █\n\n\n";
+            int chien_num = 0;
+            std::cout << "Chien numéro : ";
+            while (chien_num < 1 || chien_num > 2){
+                std::cin >> chien_num;
+                std::cout << "\n";
+            }
+
+            //on vide le buffer
+            std::getline(std::cin, buff);
+
+            std::cout << "Il obtient le chien :\n";
+            switch (chien_num)
+            {
+            case 1:
+                chien.print("\t", 0, 6);
+                chien.give_card(players[id_preneur].get_hand(), 0, 6);
+                break;
+            case 2:
+                chien.print("\t", 6, 12);
+                chien.give_card(players[id_preneur].get_hand(), 6, 12);
+                break;
+            
+            default:
+                break;
+            }
+        }
+
+        else{
+            std::cout << "Il obtient le chien :\n";
+            chien.print("\t"); 
+            chien.give_all_cards(players[id_preneur].get_hand());
+        }
+
+        //ECART
         std::cout << "\n\net il doit faire un écart de " << ecart_size << " cartes.\n\n";
-        chien.give_all_cards(players[id_preneur].get_hand());
         players[id_preneur].sort_hand();
 
         sleep(SLEEPTIME*2);
-        while (players[id_preneur].size_plis() <= ecart_size){
+        while ((players.size() != 2 && players[id_preneur].size_plis() <= ecart_size) || (players.size() == 2 && players[id_preneur].size_plis() <= ecart_size+6)){
             std::cout << CLEAR;
             players[id_preneur].print();
             std::cout << "\n\n";

@@ -2,7 +2,7 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#define NB_MIN_PLAYERS 3
+#define NB_MIN_PLAYERS 2
 #define NB_MAX_PLAYERS 5
 #define APPEL_ROI_BEFORE_ECART false
 

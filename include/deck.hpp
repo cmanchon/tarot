@@ -19,7 +19,7 @@ class Deck{
         Deck(std::string filename);
         ~Deck(){};
 
-        void print(std::string separator = "\n") const;
+        void print(std::string separator = "\n", int start = 0, int end = -1) const;
         int size() const{return (int)deck.size();};
         Card get_card(int index) const{return deck[index];};
         int nb_bouts() const;
@@ -31,6 +31,7 @@ class Deck{
 
         void add_card(Card C);
         void give_card(Deck *receiver);
+        void give_card(Deck *receiver, int start, int end);
         void give_card(Card C, Deck *receiver);
         void give_all_cards(Deck *receiver);
         void change_card(int index, Card C);
