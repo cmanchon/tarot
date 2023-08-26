@@ -4,12 +4,16 @@
 
 #define NB_MIN_PLAYERS 3
 #define NB_MAX_PLAYERS 5
+#define APPEL_ROI_BEFORE_ECART false
 
 
 class Game{
     private:
         std::vector <Player> players;
-        int id_preneur = -1;
+        union{
+            int id_preneur = -1;
+            int id_preneurs[2];
+        };
         Deck deck = Deck(DFL_DECK);
         Deck chien;
         Deck jeu;
@@ -24,6 +28,7 @@ class Game{
         void print_all_cards() const;
 
         Card prompt_card() const;
+        void appel_roi();
         int plis_winner(int first_player) const;
         bool is_move_possible(Card C, int player_id) const;
 

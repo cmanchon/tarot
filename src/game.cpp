@@ -4,6 +4,9 @@ Game::Game(int nb_players){
     for (int i = 1 ; i <= nb_players ; i++){
         players.push_back(Player(i));
     }
+
+    id_preneurs[0] = -1;
+    id_preneurs[1] = -1;
 }
 
 void Game::print_players() const{
@@ -71,8 +74,9 @@ Card Game::prompt_card() const{
     prompt.pop_back();
 
     if (prompt.size() == 0){
-        std::cerr << "error prompt_card : prompt of size 0\n";
-        exit(1);
+        // std::cerr << "error prompt_card : prompt of size 0\n";
+        // exit(1);
+        return {-1, ' '};
     }
     else if (prompt == "V")
         value = 11;
@@ -82,11 +86,54 @@ Card Game::prompt_card() const{
         value = 13;
     else if (prompt == "R")
         value = 14;
-    else
+    else{
+        for (int i = 0 ; i < (int)prompt.size() ; i++){
+            if (!std::isdigit(prompt[i]))
+                return {-1, ' '};
+        }
         value = std::stoi(prompt);
+    }
+
 
     return {value, color};
 }
+
+
+void Game::appel_roi(){
+    if (players.size() != 5)
+        return;
+    
+    std::cout << CLEAR;
+    std::cout << "Le preneur doit appeler un Roi, son propriétaire fera équipe avec le preneur.\n\n";
+    sleep(SLEEPTIME/3);
+    players[id_preneur].print_hand();
+    std::cout << "\n\n\nRAPPELS :\n\tIl est possible d'appeler un Roi qui est dans la main du preneur, mais ce dernier jouera donc seul.\n\tSi le preneur détient tous les Rois, il doit appeler une Dame.\n\n";
+
+    Card C;
+
+    do{
+        std::cout << "\nLe preneur appelle : ";
+        C = prompt_card();
+    }while(C.get_color() == 'A' || C.get_value() < 12);
+
+    for (int i = 0 ; i < (int)players.size() ; i++){
+        if (i == id_preneur)
+            continue;
+        for (int j = 0 ; j < (int)players[i].get_hand()->size() ; j++){
+            if (players[i].get_hand()->get_card(j).get_value() == C.get_value() && players[i].get_hand()->get_card(j).get_color() == C.get_color()){
+                id_preneurs[1] = i;
+                i = 10;
+                break;
+            }
+        }
+    }
+
+    std::cout << CLEAR;
+    std::cout << "Player " << BOLD << id_preneur+1 << END_FORMAT << " a choisi ";
+    C.print();
+    std::cout << "\n\n\n";
+}
+
 
 
 int Game::plis_winner(int first_player) const{
@@ -280,6 +327,8 @@ void Game::print_result(int score_def, int points_preneur) const{
     } 
 
     std::cout << "\n\nTOTAL = " << -score_def;
+    if (id_preneurs[1] != -1)
+        std::cout << "Player " << BOLD << id_preneurs[1]+1 << END_FORMAT << "étant en équipe avec le preneur, il gagne aussi " << BOLD << -score_def << END_FORMAT << " points.\n\n";
     std::cout << "\n\n\nLes autres joueurs gagnent " << score_def << " points.\n\n";
 
 
@@ -350,73 +399,98 @@ void Game::start_game(){
 
     id_preneur = ind_highest;
 
-    //chien à gérer pour garde sans et contre
 
     std::cout << CLEAR;
     std::cout << "Le joueur " << BOLD << id_preneur+1 << END_FORMAT << " a pris une ";
     players[id_preneur].print_contrat();
     sort_hands();
-    std::cout << ".\nIl obtient le chien :\n";
-    chien.print("\t"); 
-    int ecart_size = (int)chien.size();
-    std::cout << "\n\net il doit faire un écart de " << ecart_size << " cartes.\n\n";
-    chien.give_all_cards(players[id_preneur].get_hand());
-    players[id_preneur].sort_hand();
-    sleep(SLEEPTIME*2);
+
+    if (players.size() == 5 && APPEL_ROI_BEFORE_ECART){
+        appel_roi();
+    }
 
 
     int l = 0;
-    while (players[id_preneur].size_plis() <= ecart_size){
-        std::cout << CLEAR;
-        players[id_preneur].print();
-        std::cout << "\n\n";
+    int ecart_size = (int)chien.size();
+    if (highest_choix == PRISE || highest_choix == GARDE){
+        std::cout << ".\nIl obtient le chien :\n";
+        chien.print("\t"); 
+        std::cout << "\n\net il doit faire un écart de " << ecart_size << " cartes.\n\n";
+        chien.give_all_cards(players[id_preneur].get_hand());
+        players[id_preneur].sort_hand();
 
-        std::cout << "Écart :\n";
-        if (players[id_preneur].size_plis() == 0)
-            std::cout << "(vide)";
-        players[id_preneur].get_plis()->print("\t");
-        std::cout << "\n\n";
-        players[id_preneur].print_hand();
+        sleep(SLEEPTIME*2);
+        while (players[id_preneur].size_plis() <= ecart_size){
+            std::cout << CLEAR;
+            players[id_preneur].print();
+            std::cout << "\n\n";
 
-        if (players[id_preneur].size_plis() < ecart_size){
-            std::cout << "\n\n\nSélectionner " << ecart_size << " cartes à mettre dans l'écart :\n";
-            Card C = prompt_card();
-            if ((C.get_value() == 14 && C.get_color() != 'A') || (C.get_color() == 'A' && (C.get_value() == 0 || C.get_value() == 1 || C.get_value() == 21)))       //rois et bouts interdits dans l'écart
-                continue;
-            if (players[id_preneur].get_hand()->is_in(C)){
-                players[id_preneur].get_hand()->give_card(C, players[id_preneur].get_plis());
+            std::cout << "Écart :\n";
+            if (players[id_preneur].size_plis() == 0)
+                std::cout << "(vide)";
+            players[id_preneur].get_plis()->print("\t");
+            std::cout << "\n\n";
+            players[id_preneur].print_hand();
+
+            if (players[id_preneur].size_plis() < ecart_size){
+                std::cout << "\n\n\nSélectionner " << ecart_size << " cartes à mettre dans l'écart :\n";
+                Card C = prompt_card();
+                if ((C.get_value() == 14 && C.get_color() != 'A') || (C.get_color() == 'A' && (C.get_value() == 0 || C.get_value() == 1 || C.get_value() == 21)))       //rois et bouts interdits dans l'écart
+                    continue;
+                if (players[id_preneur].get_hand()->is_in(C)){
+                    players[id_preneur].get_hand()->give_card(C, players[id_preneur].get_plis());
+                }
+                else if (players[id_preneur].get_plis()->is_in(C)){
+                    players[id_preneur].get_plis()->give_card(C, players[id_preneur].get_hand());
+                }
+
             }
-            else if (players[id_preneur].get_plis()->is_in(C)){
-                players[id_preneur].get_plis()->give_card(C, players[id_preneur].get_hand());
+            else{
+                std::cout << "\n\n\nValider cet écart ? (Y/N)\n";
+                char tmp;
+                std::cin >> tmp;
+                if (tmp == 'Y')
+                    break;
+                else if (tmp == 'N')
+                    continue;
+                else
+                    return;
             }
 
-        }
-        else{
-            std::cout << "\n\n\nValider cet écart ? (Y/N)\n";
-            char tmp;
-            std::cin >> tmp;
-            if (tmp == 'Y')
-                break;
-            else if (tmp == 'N')
-                continue;
-            else
+            //safety
+            l++;
+            if (l > 15){
+                std::cerr << "error Game::start_game() : too many tries\n";
                 return;
+            }
         }
-
-        //safety
-        l++;
-        if (l > 15){
-            std::cerr << "error Game::start_game() : too many tries\n";
-            return;
-        }
+        sleep(SLEEPTIME);
+        std::cout << CLEAR;
+        if (players.size() != 5)
+            std::cout << "Le preneur a fait son écart, la partie peut commencer.\n\n";
     }
-
-    std::cout << CLEAR;
-    std::cout << "Le preneur a fait son écart, la partie peut commencer.\n\n";
-    sleep(SLEEPTIME);
+    else if (highest_choix == GARDE_SANS){
+        //chien dans les plis du preneur mais il fait pas d'écart
+        std::cout << ".\nLe chien est mis dans les plis du preneur. Il ne peut pas faire d'écart.\n";
+        chien.give_all_cards(players[id_preneur].get_plis());
+    }
+    else if (highest_choix == GARDE_CONTRE){
+        //chien dans les plis de la défense, du coup on peut les laisser dans chien pcq on compte que les points du preneur 
+        std::cout << ".\nLe chien est mis dans les plis de la défense. Le preneur ne peut pas faire d'écart.\n";
+    }
 
     //on vide le buffer
     std::getline(std::cin, buff);
+
+    sleep(SLEEPTIME);
+    
+    if (players.size() == 5 && !APPEL_ROI_BEFORE_ECART){
+        appel_roi();
+        //on vide le buffer
+        std::getline(std::cin, buff);
+    }
+
+
 
 }
 
@@ -491,6 +565,9 @@ void Game::game(){
 
     }
 
+    if (id_preneurs[1] != -1)
+        players[id_preneurs[1]].get_plis()->give_all_cards(players[id_preneur].get_plis());
+
     int score_preneur = players[id_preneur].count_score();
 
     int score_def = players[id_preneur].check_contrat(score_preneur, players.size());
@@ -499,6 +576,8 @@ void Game::game(){
     for (int i = 0 ; i < (int)players.size() ; i++){
         if (i == id_preneur)
             continue;
+        else if (i == id_preneurs[1])
+            players[i].add_score(-score_def);
         players[i].add_score(score_def);
     }
 
