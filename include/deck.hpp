@@ -23,6 +23,7 @@ class Deck{
         int size() const{return (int)deck.size();};
         Card get_card(int index) const{return deck[index];};
         int nb_bouts() const;
+        int nb_atouts() const;
 
         bool is_in(Card C) const;
         bool has_color(char color) const;

@@ -2,6 +2,8 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
+
+#define NB_POINTS_TOTAL 91
 #define NB_MIN_PLAYERS 2
 #define NB_MAX_PLAYERS 5
 #define APPEL_ROI_BEFORE_ECART false
@@ -37,6 +39,10 @@ class Game{
         void sort_hands();
 
         void print_result(int score_def, int points_preneur) const;
+
+
+        //AI
+        int AI_choose_contrat(int player_id);
 
         void start_game();
         void game();

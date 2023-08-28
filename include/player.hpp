@@ -10,6 +10,8 @@
 #define GARDE_SANS 3
 #define GARDE_CONTRE 4
 
+#define ID_AI 42
+
 
 typedef struct Comb{
     int contrat_type = PASSE;                       //prise x1 ; garde x2 ; garde sans x4 ; garde contre x6
@@ -37,6 +39,7 @@ class Player{
         void print_hand(int show_number = 0) const;
         void print_contrat() const;
         void print_contrat(int contrat) const;
+        int get_id() const{return id;};
         Deck* get_hand() {return &hand;};
         Deck* get_plis() {return &plis;};
         Comb get_comb() const {return comb;};
@@ -53,6 +56,8 @@ class Player{
         int check_contrat(int points, int nb_players);
         void add_score(int n){score+=n;};
         void reset_comb();
+
+
 };
 
 

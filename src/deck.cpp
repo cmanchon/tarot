@@ -46,6 +46,18 @@ int Deck::nb_bouts() const{
 }
 
 
+int Deck::nb_atouts() const{
+    int atouts = 0; 
+    
+    for (int i = 0 ; i < (int)deck.size() ; i++){
+        if (deck[i].get_color() == 'A')
+            atouts++;
+    }
+
+    return atouts;
+}
+
+
 bool Deck::is_in(Card C) const{
     if (C.get_color() == ' ')
         return false;

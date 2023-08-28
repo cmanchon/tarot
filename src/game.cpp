@@ -333,18 +333,78 @@ void Game::print_result(int score_def, int points_preneur) const{
         std::cout << "Player " << BOLD << id_preneurs[1]+1 << END_FORMAT << "étant en équipe avec le preneur, il gagne aussi " << BOLD << -score_def << END_FORMAT << " points.\n\n";
     std::cout << "\n\n\nLes autres joueurs gagnent " << score_def << " points.\n\n";
 
-
 }
+
+
+int Game::AI_choose_contrat(int player_id){
+    if (players[player_id].get_id() < ID_AI || players[player_id].size_hand() == 0)
+        return -1;
+
+    int nb_points = players[player_id].get_hand()->count_points();
+    int nb_points_moyen = (NB_POINTS_TOTAL-chien.count_points()) / players.size();
+    int nb_points_moyen_plus10p = nb_points_moyen + (nb_points_moyen * 10) / 100;
+    int nb_points_moyen_plus15p = nb_points_moyen + (nb_points_moyen * 15) / 100;
+    int nb_bouts = players[player_id].get_hand()->nb_bouts();
+    int nb_atouts = players[player_id].get_hand()->nb_atouts();
+    int nb_atouts_moyen = 22 / players.size();
+
+    if (nb_points < nb_points_moyen && nb_bouts < 2){
+        if (nb_bouts < 2 || nb_atouts < nb_atouts_moyen)
+            return PASSE;
+        else
+            return PRISE;
+    }
+    if (nb_points >= nb_points_moyen && nb_points < nb_points_moyen_plus10p){
+        if (nb_bouts == 0)
+            return PASSE;
+        if (nb_bouts == 1)
+            return PRISE;
+        if (nb_bouts == 2)
+            return GARDE;
+    }
+    if (nb_points >= nb_points_moyen_plus10p){
+        if (nb_bouts >= 2)
+            return GARDE_SANS;
+        else
+            return GARDE;
+    }
+    if (nb_points >= nb_points_moyen_plus15p){
+        if (nb_bouts >= 2)
+            return GARDE_CONTRE;
+        else
+            return GARDE_SANS;
+    }
+
+
+    return PASSE;
+}
+
+
 
 void Game::start_game(){
     std::cout << "########## TAROT ##########\n\n";
     if (players.size() < NB_MIN_PLAYERS){
         int nb_players = 0;
         while (nb_players < NB_MIN_PLAYERS || nb_players > NB_MAX_PLAYERS){
-            std::cout << "Combien de joueurs ?\n";
+            std::cout << "Tarot à combien de joueurs ?\n";
             std::cin >> nb_players;
         }
-        for (int i = 1 ; i <= nb_players ; i++){
+
+        
+        //on vide le buffer
+        std::string buff;
+        std::getline(std::cin, buff);
+
+        std::cout << "\n\n";
+        int nb_AI = -1;
+        while (nb_AI < 0 || nb_AI > nb_players){
+            std::cout << "Dont combien de IA ?\n";
+            std::cin >> nb_AI;
+        }
+        for (int i = 1 ; i <= nb_players-nb_AI ; i++){
+            players.push_back(Player(i));
+        }
+        for (int i = ID_AI ; i < nb_AI+ID_AI ; i++){
             players.push_back(Player(i));
         }
     }
@@ -355,20 +415,38 @@ void Game::start_game(){
     int choix, highest_choix = PASSE, ind_highest = -1;
     for (int i = 0 ; i < (int)players.size() ; i++){
         do {
-            std::cout << CLEAR;
+            std::cout << CLEAR,
             players[i].print();
-            players[i].print_hand();
+            if (players[i].get_id() >= ID_AI){
+                
+                players[i].print_hand();
 
-            if (highest_choix > PASSE){
-                std::cout << "\n\nLe joueur " << BOLD << ind_highest+1 << END_FORMAT << " a pris une ";
-                players[ind_highest].print_contrat(highest_choix);
-                std::cout << ".";
+                choix = AI_choose_contrat(i);
+                std::cout << "\n\nLe joueur " << players[i].get_id() << " (IA) a choisi une ";
+                players[i].print_contrat(choix);
+                std::cout << ".\n\n";
+                // sleep(SLEEPTIME);
+                sleep(10);
+                break;
             }
+            else{
+                players[i].print_hand();
 
-            std::cout << "\n\nQue faire ?\n";
-            std::cout << "  0\t  1\t  2\t  3\t\t  4\n";
-            std::cout << "PASSER\tPRISE\tGARDE\tGARDE SANS\tGARDE CONTRE\n\nChoix : ";
-            std::cin >> choix;
+                if (highest_choix > PASSE){
+                    std::cout << "\n\nLe joueur " << BOLD << ind_highest+1 << END_FORMAT << " a pris une ";
+                    players[ind_highest].print_contrat(highest_choix);
+                    std::cout << ".";
+                }
+
+                std::cout << "\n\nIl y a " << BOLD << players[i].get_hand()->count_points() << END_FORMAT << " points dans cette main.\n";
+                std::cout << NB_POINTS_TOTAL / players[i].get_hand()->count_points();
+                std::cout << "\nNombre de points moyen : " << NB_POINTS_TOTAL/players.size();
+
+                std::cout << "\n\nQue faire ?\n";
+                std::cout << "  0\t  1\t  2\t  3\t\t  4\n";
+                std::cout << "PASSER\tPRISE\tGARDE\tGARDE SANS\tGARDE CONTRE\n\nChoix : ";
+                std::cin >> choix;
+            }
 
         }while((choix <= highest_choix && choix != 0) || choix > GARDE_CONTRE);
 
@@ -627,6 +705,16 @@ void Game::game(){
             players[i].add_score(-score_def);
         players[i].add_score(score_def);
     }
+
+    std::cout << CLEAR;
+    std::cout << "Fin de la partie.\n\n";
+
+    if (players.size() == 2){
+        std::cout << "Le chien qui n'a pas été pris par le preneur :\n\n";
+        chien.print("\t");
+    }
+
+    sleep(SLEEPTIME*2);
 
     //PRINT RANKING
 
