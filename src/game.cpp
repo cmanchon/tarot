@@ -106,7 +106,8 @@ void Game::appel_roi(){
     std::cout << CLEAR;
     std::cout << "Le preneur doit appeler un Roi, son propriétaire fera équipe avec le preneur.\n\n";
     sleep(SLEEPTIME/3);
-    players[id_preneur].print_hand();
+    if (players[id_preneur].get_id() < ID_AI)
+        players[id_preneur].print_hand();
     std::cout << "\n\n\nRAPPELS :\n\tIl est possible d'appeler un Roi qui est dans la main du preneur, mais ce dernier jouera donc seul.\n\tSi le preneur détient tous les Rois, il doit appeler une Dame.\n\n";
 
     Card C;
@@ -373,18 +374,17 @@ void Game::start_game(){
         while (nb_players < NB_MIN_PLAYERS || nb_players > NB_MAX_PLAYERS){
             std::cout << "Tarot à combien de joueurs ?\n";
             std::cin >> nb_players;
+            FLUSH_CIN;
         }
 
         
-        //on vide le buffer
-        std::string buff;
-        std::getline(std::cin, buff);
 
         std::cout << "\n\n";
         int nb_AI = -1;
         while (nb_AI < 0 || nb_AI > nb_players){
             std::cout << "Dont combien de IA ?\n";
             std::cin >> nb_AI;
+            FLUSH_CIN;
         }
         for (int i = 1 ; i <= nb_players-nb_AI ; i++){
             players.push_back(Player(i));
@@ -408,6 +408,7 @@ void Game::start_game(){
 
                 choix = AI_choose_contrat(i);
                 std::cout << "\n\nLe joueur " << players[i].get_id() << " (IA) a choisi une ";
+                players[i].print_contrat(choix);
                 std::cout << ".\n\n";
                 sleep(SLEEPTIME);
                 break;
@@ -425,6 +426,7 @@ void Game::start_game(){
                 std::cout << "  0\t  1\t  2\t  3\t\t  4\n";
                 std::cout << "PASSER\tPRISE\tGARDE\tGARDE SANS\tGARDE CONTRE\n\nChoix : ";
                 std::cin >> choix;
+                FLUSH_CIN;
             }
 
         }while((choix <= highest_choix && choix != 0) || choix > GARDE_CONTRE);
@@ -456,10 +458,6 @@ void Game::start_game(){
 
         }
     }
-
-    //on vide le buffer
-    std::string buff;
-    std::getline(std::cin, buff);
 
 
     id_preneur = ind_highest;
@@ -494,11 +492,9 @@ void Game::start_game(){
                 std::cout << "Chien numéro : ";
                 while (chien_num < 1 || chien_num > 2){
                     std::cin >> chien_num;
+                    FLUSH_CIN;
                     std::cout << "\n";
                 }
-
-                //on vide le buffer
-                std::getline(std::cin, buff);
 
             }  
 
@@ -533,6 +529,11 @@ void Game::start_game(){
         if (players[id_preneur].get_id() >= ID_AI){
             std::cout << "Le joueur " << BOLD << players[id_preneur].get_id() << END_FORMAT << " fait son écart...\n\n";
             AI_ecart();
+
+            players[id_preneur].get_hand()->print("\t");
+            players[id_preneur].get_plis()->print("\t");
+            sleep(10);
+
             sleep(SLEEPTIME);
         }
         else{
@@ -565,6 +566,7 @@ void Game::start_game(){
                     std::cout << "\n\n\nValider cet écart ? (Y/N)\n";
                     char tmp;
                     std::cin >> tmp;
+                    FLUSH_CIN;
                     if (tmp == 'Y')
                         break;
                     else if (tmp == 'N')
@@ -580,8 +582,6 @@ void Game::start_game(){
                     exit(1);
                 }
             }
-            //on vide le buffer
-            std::getline(std::cin, buff);
 
         }
         sleep(SLEEPTIME);
@@ -604,10 +604,6 @@ void Game::start_game(){
     
     if (players.size() == 5 && !APPEL_ROI_BEFORE_ECART){
         appel_roi();
-        if (players[id_preneur].get_id() < ID_AI){
-            //on vide le buffer
-            std::getline(std::cin, buff);
-        }
     }
 
     sleep(SLEEPTIME);

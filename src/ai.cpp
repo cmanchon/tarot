@@ -50,6 +50,10 @@ void Game::AI_ecart(){
 
     std::vector<int> H, D, S, C;
 
+    int ecart_size = 6;
+    if (players.size() == 5)
+        ecart_size = 3;
+
     //on compte les cartes sans les Rois
     for (int i = 0 ; i < (int)players[id_preneur].get_hand()->size() ; i++){
         if (players[id_preneur].get_hand()->get_card(i).get_color() == 'A' || players[id_preneur].get_hand()->get_card(i).get_value() == ROI)
@@ -66,18 +70,18 @@ void Game::AI_ecart(){
 
     std::vector<int> empty;
     std::vector<int> *color = &empty;
-    if (H.size() == 6)
+    if ((int)H.size() == ecart_size)
         color = &H;
-    if (D.size() == 6)
+    if ((int)D.size() == ecart_size)
         color = &D;
-    if (S.size() == 6)
+    if ((int)S.size() == ecart_size)
         color = &S;
-    if (C.size() == 6)
+    if ((int)C.size() == ecart_size)
         color = &C;
 
 
     if (!color->empty()){
-        for (int i = 0 ; i < 6 ; i++){
+        for (int i = 0 ; i < ecart_size ; i++){
             players[id_preneur].give_hand_card(color[0][i], players[id_preneur].get_plis());
         }
         return;
@@ -106,7 +110,7 @@ void Game::AI_ecart(){
     sleep(2); 
 
     int i = 0;
-    while (players[id_preneur].get_plis()->size() < 6){
+    while (players[id_preneur].get_plis()->size() < ecart_size){
         if (cartes[i].size() == 0)
             i++;
         players[id_preneur].give_hand_card(cartes[i][0], players[id_preneur].get_plis());
