@@ -42,7 +42,8 @@ class Game{
 
 
         //AI
-        int AI_choose_contrat(int player_id);
+        int AI_choose_contrat(int ind);
+        void AI_ecart();
 
         void start_game();
         void game();

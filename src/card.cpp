@@ -29,16 +29,16 @@ void Card::print() const{
         else {
             switch (value)
             {
-            case 11:
+            case VALET:
                 std::cout << "V";
                 break;
-            case 12:
+            case CAVALIER:
                 std::cout << "C";
                 break;
-            case 13:
+            case DAME:
                 std::cout << "D";
                 break;
-            case 14:
+            case ROI:
                 std::cout << "R";
                 break;
             

@@ -1,7 +1,7 @@
 CC = g++
 CPPFLAGS = -Wall
 OPT = -O3
-OBJ = obj/main.o obj/card.o obj/deck.o obj/player.o obj/game.o
+OBJ = obj/main.o obj/card.o obj/deck.o obj/player.o obj/game.o obj/ai.o
 
 main: $(OBJ)
 	$(CC) $(OPT) $^ -o $@

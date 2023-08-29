@@ -74,6 +74,9 @@ void Player::give_hand_card(Card C, Deck *receiver){
     hand.give_card(C, receiver);
 }
 
+void Player::give_hand_card(int ind, Deck *receiver){
+    hand.give_card(receiver, ind, ind+1);
+}
 
 
 void Player::contrat(int c){

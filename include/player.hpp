@@ -51,6 +51,7 @@ class Player{
 
         void sort_hand(){hand.sort();};
         void give_hand_card(Card C, Deck *receiver);
+        void give_hand_card(int ind, Deck *receiver);
 
         void contrat(int c);
         int check_contrat(int points, int nb_players);

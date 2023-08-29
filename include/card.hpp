@@ -4,6 +4,14 @@
 #include <iostream>
 #include <string.h>
 #include <unistd.h>     
+#include <limits>
+#include <ios>
+
+
+#define VALET 11
+#define CAVALIER 12
+#define DAME 13
+#define ROI 14
 
 
 #define RED "\033[31m"

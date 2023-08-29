@@ -278,16 +278,16 @@ int Deck::count_points() const{
         else{
             switch (deck[i].get_value())
             {
-            case 11:
+            case VALET:
                 points += 1.5;
                 break;
-            case 12:
+            case CAVALIER:
                 points += 2.5;
                 break;
-            case 13:
+            case DAME:
                 points += 3.5;
                 break;
-            case 14:
+            case ROI:
                 points += 4.5;
                 break;
             
