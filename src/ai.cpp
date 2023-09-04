@@ -119,3 +119,42 @@ void Game::AI_ecart(){
     }
 
 }
+
+
+Card Game::AI_play(int ind, int first_player){
+    if (players[ind].get_id() < ID_AI){
+        std::cerr << "error AI_play(): player "<< ind << " ("<< players[ind].get_id() << ") is not an AI\n";
+        exit(1);
+    }
+
+    std::vector<int> possible_moves;
+
+    for (int i = 0 ; i < (int)players[ind].get_hand()->size() ; i++){
+        if (is_move_possible(players[ind].get_hand()->get_card(i), ind))
+            possible_moves.push_back(i);
+    }
+
+    int leader = plis_winner(first_player);
+
+    bool is_mate = false;
+    if ((is_preneur(ind) && is_preneur(leader)) || (!is_preneur(ind) && !is_preneur(leader)))
+        is_mate = true;
+
+    Card C;
+
+    if (is_mate){
+        for (int i = 0 ; i < (int)possible_moves.size() ; i++){
+            if (players[ind].get_hand()->get_card(i).get_color() != 'A' && players[ind].get_hand()->get_card(i).get_value() > 10)
+                C = players[ind].get_hand()->get_card(i);
+        }
+
+        if (C.get_color() != ' ') return C;
+
+        if (players[ind].get_hand()->nb_atouts() == (int)possible_moves.size()){
+            //peut-être jouer le 21 si il y est 
+            C = players[ind].get_hand()->get_card(0);
+        }
+
+    }
+
+}

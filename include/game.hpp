@@ -29,6 +29,8 @@ class Game{
         void print_jeu(int first_player = 0) const;
         void print_all_cards() const;
 
+        bool is_preneur(int ind) const;
+
         Card prompt_card() const;
         void appel_roi();
         int plis_winner(int first_player) const;
@@ -44,6 +46,7 @@ class Game{
         //AI
         int AI_choose_contrat(int ind);
         void AI_ecart();
+        Card AI_play(int ind, int first_player);
 
         void start_game();
         void game();

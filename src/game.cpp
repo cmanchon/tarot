@@ -54,6 +54,16 @@ void Game::print_all_cards() const{
     }
 }
 
+bool Game::is_preneur(int ind) const{
+    if (id_preneur == ind || id_preneurs[1] == ind)
+        return true;
+    else 
+        return false;
+}
+
+
+
+
 Card Game::prompt_card() const{
     std::string prompt;
     std::getline(std::cin, prompt);
