@@ -21,6 +21,8 @@ Deck::Deck(std::string filename){
         deck.push_back({value, color});
     }
 
+
+    file.close();
 }
 
 

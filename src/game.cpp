@@ -176,6 +176,7 @@ void Game::appel_roi(){
 
 
 int Game::plis_winner(int first_player) const{
+    //returns the ind of the winner of the pli
     if (jeu.size() == 0)
         return -1;
     int value = jeu.get_card(0).get_value();
@@ -685,6 +686,8 @@ void Game::game(){
             players[j].give_hand_card(C, &jeu);
             j++;
         }
+
+        
 
         first_player = plis_winner(first_player);
         jeu.give_all_cards(players[first_player].get_plis());

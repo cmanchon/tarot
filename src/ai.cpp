@@ -1,4 +1,4 @@
-#include "../include/game.hpp"
+#include "../include/ai.hpp"
 
 int Game::AI_choose_contrat(int ind){
     if (players[ind].get_id() < ID_AI || players[ind].size_hand() == 0)
@@ -157,4 +157,41 @@ Card Game::AI_play(int ind, int first_player){
 
     }
 
+}
+
+
+
+
+
+
+
+//MOVES
+Moves::Moves(std::string filename){
+
+}
+
+
+void Moves::save_in_file(std::string filename){
+    std::ofstream file(filename);
+
+    if (!file.is_open()){
+        std::cerr << "error Moves::save_in_file(): couldn't open " << filename << "\n";
+        exit(1);
+    }
+
+    for (int i = 0 ; i < (int)moves.size() ; i++){
+        file << moves[i].value << ","; 
+        for (int j = 0 ; j < moves[i].cards.size() ; j++){
+            file << moves[i].cards.get_card(j).get_value() << moves[i].cards.get_card(j).get_color() << ' '; 
+        }
+        file << ",";
+        for (int j = 0 ; j < (int)moves[i].is_mate.size() ; j++){
+            file << moves[i].is_mate[j] << ' '; 
+        }
+
+        file << "\n";
+
+    }
+   
+  
 }

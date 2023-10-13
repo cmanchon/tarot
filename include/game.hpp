@@ -8,6 +8,8 @@
 #define NB_MAX_PLAYERS 5
 #define APPEL_ROI_BEFORE_ECART false
 
+#define AI_MOVES true
+
 
 class Game{
     private:
@@ -19,6 +21,7 @@ class Game{
         Deck deck = Deck(DFL_DECK);
         Deck chien;
         Deck jeu;
+        Moves GM;
     public:
         Game(){};
         Game(int nb_players);
@@ -30,6 +33,11 @@ class Game{
         void print_all_cards() const;
 
         bool is_preneur(int ind) const;
+
+        int nb_players(){return (int)players.size();};
+        Deck get_pli(){return jeu;};
+        int get_players_id(int ind){return players[ind].get_id();};
+        int jeu_points(){return jeu.count_points();};
 
         Card prompt_card() const;
         void appel_roi();
