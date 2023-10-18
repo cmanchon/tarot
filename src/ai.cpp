@@ -1,5 +1,6 @@
 #include "../include/ai.hpp"
 
+
 int Game::AI_choose_contrat(int ind){
     if (players[ind].get_id() < ID_AI || players[ind].size_hand() == 0)
         return -1;
@@ -157,6 +158,7 @@ Card Game::AI_play(int ind, int first_player){
 
     }
 
+    return C;
 }
 
 
@@ -166,9 +168,86 @@ Card Game::AI_play(int ind, int first_player){
 
 
 //MOVES
-Moves::Moves(std::string filename){
+Moves::Moves(int id, std::string filename): player_id(id){
+    std::ifstream file(filename);
+
+    if (!file.is_open()){
+        std::cerr << "error Moves::Moves(std::string filename): couldn't open " << filename << "\n";
+        exit(1);
+    }
+
+    Deck cards;
+    int card_value;
+    char card_color;
+    int value;
+    std::vector<bool> is_mate;
+    bool tmp;
+
+    while (file.peek() != EOF){
+        file >> value;
+        file.get();
+
+        while (file.peek() != ','){
+            file >> card_value >> card_color;
+            cards.add_card({card_value, card_color});
+        }
+
+        file.get();
+        while (file.peek() != '\n'){
+            file >> tmp;
+            is_mate.push_back(tmp);
+        }
+
+        // file.get();
+        moves.push_back({value, cards, is_mate});
+
+        cards.set_empty();
+        is_mate.clear();
+    }
+
 
 }
+
+void Moves::print() const{
+    if (moves.size() == 0)
+        std::cout << "no moves.\n";
+    else{
+        for (int i = 0 ; i < (int)moves.size() ; i++){
+            std::cout << "Value: " << moves[i].value << "\n";
+            moves[i].cards.print("\t");
+            for (int j = 0 ; j < (int)moves[i].is_mate.size() ; j++){
+                if (moves[i].is_mate[j])
+                    std::cout << "MATE";
+                std::cout << "\t"; 
+            }
+            std::cout << "\n";
+        }
+
+    }
+}
+
+void print_moves(std::vector<Moves> MV){
+    for (int i = 0 ; i < (int)MV.size() ; i++){
+        MV[i].print();
+    }
+}
+
+
+bool are_similar(Card A, Card B){
+    if (A == B 
+    || (A.get_color() == 'A' && B.get_color() == 'A' && A.get_value() > 15 && B.get_value() > 15)
+    || (A.get_color() == 'A' && B.get_color() == 'A' && A.get_value() < 9 && B.get_value() < 9)
+    || (A.get_color() == 'A' && B.get_color() == 'A' && A.get_value() >= 9 && B.get_value() >= 9 && A.get_value() <= 15 && B.get_value() <= 15)
+    || (A.get_color() != 'A' && B.get_color() != 'A' && A.get_value() >= CAVALIER && B.get_value() >= CAVALIER)
+    || (A.get_color() != 'A' && B.get_color() != 'A' && A.get_value() <= 10 && B.get_value() <= 10)
+    || (A.get_color() != 'A' && B.get_color() != 'A' && A.get_value() < CAVALIER && B.get_value() < CAVALIER && A.get_value() > 10 && B.get_value() > 10)
+    )
+        return true;
+    else
+        return false;
+}
+
+
 
 
 void Moves::save_in_file(std::string filename){
@@ -194,4 +273,38 @@ void Moves::save_in_file(std::string filename){
     }
    
   
+}
+
+
+
+
+
+
+
+Deck Moves::relevant_moves(Game G, int first_player) const{
+    Deck RM;
+
+    if (first_player == G.get_players_ind(player_id)){ //???
+        for (int i = 0 ; i < (int)moves.size() ; i++){
+            if (moves[i].value >= 2 && are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0))){
+                RM.add_card(moves[i].cards.get_card(0));
+            }
+        }
+
+        return RM;
+    }
+
+
+    for (int i = 0 ; i < (int)moves.size() ; i++){
+        if (moves[i].value >= 2 && are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0)) && (!moves[i].is_mate[0] || moves.size() == 5)){
+            for (int k = 0 ; k < (int)moves[i].is_mate.size() ; k++){
+                if (moves[i].is_mate[k])
+                    RM.add_card(moves[i].cards.get_card(k));
+            }
+        }
+    }
+
+
+
+    return RM;
 }

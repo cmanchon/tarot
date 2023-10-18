@@ -35,6 +35,7 @@ class Deck{
         void give_card(Deck *receiver, int start, int end);
         void give_card(Card C, Deck *receiver);
         void give_all_cards(Deck *receiver);
+        void set_empty(){deck.clear();};
         void change_card(int index, Card C);
         void shuffle();
         void sort();

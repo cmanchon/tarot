@@ -1,5 +1,6 @@
 #include "../include/game.hpp"
 
+
 Game::Game(int nb_players){
     for (int i = 1 ; i <= nb_players ; i++){
         players.push_back(Player(i));
@@ -59,6 +60,16 @@ bool Game::is_preneur(int ind) const{
         return true;
     else 
         return false;
+}
+
+
+int Game::get_players_ind(int id)const{
+    for (int i = 0 ; i < (int)players.size() ; i++){
+        if (players[i].get_id() == id)
+            return i;
+    }
+
+    return -1;
 }
 
 
@@ -623,6 +634,16 @@ void Game::start_game(){
 
 
 void Game::game(){
+
+    std::vector<Moves> MV;
+
+    if (AI_MOVES){
+        for (int i = 0 ; i < (int)players.size() ; i++){
+            if (players[i].get_id() >= ID_AI)
+                MV.push_back({(players[i].get_id()), "moves.csv"});
+        }
+    }
+
     srand((unsigned) time(NULL));
     int first_player = rand() % players.size();
     //si chelem -> preneur joue en premier
@@ -687,11 +708,21 @@ void Game::game(){
             j++;
         }
 
-        
+        if (AI_MOVES){
+            for (int k = 0 ; k < (int)MV.size() ; k++){
+                MV[k].add(MV[k].get_id(), *this, first_player);
+            }
+
+        }
 
         first_player = plis_winner(first_player);
         jeu.give_all_cards(players[first_player].get_plis());
 
+    }
+
+    if (AI_MOVES){
+        for (int i = 0 ; i < (int)MV.size() ; i++)
+            MV[i].save_in_file("moves.csv");
     }
 
     if (id_preneurs[1] != -1)

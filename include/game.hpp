@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "ai.hpp"
 #ifndef GAME_HPP
 #define GAME_HPP
 
@@ -21,7 +22,6 @@ class Game{
         Deck deck = Deck(DFL_DECK);
         Deck chien;
         Deck jeu;
-        Moves GM;
     public:
         Game(){};
         Game(int nb_players);
@@ -37,6 +37,7 @@ class Game{
         int nb_players(){return (int)players.size();};
         Deck get_pli(){return jeu;};
         int get_players_id(int ind){return players[ind].get_id();};
+        int get_players_ind(int id)const;
         int jeu_points(){return jeu.count_points();};
 
         Card prompt_card() const;

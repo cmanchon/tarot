@@ -61,3 +61,9 @@ void Card::print() const{
         std::cout << GREEN << " █" << END_FORMAT;
 
 }
+
+
+
+bool operator==(const Card& A, const Card& B){
+    return (A.color == B.color && A.value == B.value);
+}

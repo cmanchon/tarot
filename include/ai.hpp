@@ -1,12 +1,18 @@
-#include "game.hpp"
 #ifndef AI_HPP
 #define AI_HPP
+#include "game.hpp"
 
 struct Move{
     int value;
     Deck cards;
     std::vector<bool> is_mate;
     
+    Move(int v, Deck D, std::vector<bool> tmp){
+        value = v;
+        cards = D;
+        is_mate = tmp;
+    }
+
     Move(int id, Game G, int first_player){
         cards = G.get_pli();
 
@@ -46,16 +52,22 @@ class Moves{
         Moves(){};
         Moves(int id){player_id = id;};
         Moves(int id, Game G, int first_player){moves.push_back({id, G, first_player});};
-        Moves(std::string filename);     //csv maybe
+        Moves(int id = -1, std::string filename);     //csv maybe
         ~Moves(){};
+
+        void print() const;
+        int get_id() const{return player_id;};
 
         void add(int id, Game G, int first_player){moves.push_back({id, G, first_player});};
 
         void remove_useless();      //low and doublon
         bool is_move_similar();     //ou les save de manière à ce que ça se check facilement
         void save_in_file(std::string filename);
+        Deck relevant_moves(Game G, int first_player) const;
 };
 
 
+void print_moves(std::vector<Moves> MV);
+bool are_similar(Card A, Card B);
 
 #endif
