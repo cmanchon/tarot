@@ -29,7 +29,7 @@ struct Move{
         }
 
         //on détermine la value
-        if (G.is_preneur(G.get_players_id(G.plis_winner(first_player))) == G.is_preneur(id)){
+        if (G.is_preneur(G.get_players_id(G.pli_winner(first_player))) == G.is_preneur(id)){
             if (G.jeu_points() >= 2 * G.nb_players())
                 value = 3;
             else
@@ -52,7 +52,7 @@ class Moves{
         Moves(){};
         Moves(int id){player_id = id;};
         Moves(int id, Game G, int first_player){moves.push_back({id, G, first_player});};
-        Moves(int id = -1, std::string filename);     //csv maybe
+        Moves(int id = -1, std::string filename = "");     //csv maybe
         ~Moves(){};
 
         void print() const;
@@ -63,7 +63,10 @@ class Moves{
         void remove_useless();      //low and doublon
         bool is_move_similar();     //ou les save de manière à ce que ça se check facilement
         void save_in_file(std::string filename);
-        Deck relevant_moves(Game G, int first_player) const;
+        std::vector<Deck> relevant_moves(Game G, int first_player) const;
+
+        Card AI_play_ML(Game G, int ind , int first_player);
+
 };
 
 

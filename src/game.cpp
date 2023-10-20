@@ -31,7 +31,7 @@ void Game::print_jeu(int first_player) const{
             std::cerr << "error Game::print_jeu() : too many cards in jeu\n";
             exit(1);
         }
-        std::cout << j+1 << END_FORMAT << " played\n";
+        std::cout << get_players_id(j) << END_FORMAT << " played\n";
         j++;
 
         jeu.get_card(i).print();
@@ -56,7 +56,7 @@ void Game::print_all_cards() const{
 }
 
 bool Game::is_preneur(int ind) const{
-    if (id_preneur == ind || id_preneurs[1] == ind)
+    if (id_preneur == ind || id_preneurs[1] == ind || id_preneur == get_players_ind(ind) || id_preneurs[1] == get_players_ind(ind))
         return true;
     else 
         return false;
@@ -185,26 +185,6 @@ void Game::appel_roi(){
 }
 
 
-
-int Game::plis_winner(int first_player) const{
-    //returns the ind of the winner of the pli
-    if (jeu.size() == 0)
-        return -1;
-    int value = jeu.get_card(0).get_value();
-    char color = jeu.get_card(0).get_color();
-    int res = first_player;
-    for (int i = 0 ; i < jeu.size() ; i++){
-        if ((jeu.get_card(i).get_value() > value && color != 'A' && jeu.get_card(i).get_color() == color) 
-        || (color == 'A' && jeu.get_card(i).get_color() == 'A' && value < jeu.get_card(i).get_value())
-        || (color != 'A' && jeu.get_card(i).get_color() == 'A' && jeu.get_card(i).get_value() != 0)){
-            value = jeu.get_card(i).get_value();
-            color = jeu.get_card(i).get_color();
-            res = (first_player + i) % players.size();
-        }
-    }
-
-    return res;
-}
 
 
 bool Game::is_move_possible(Card C, int player_id) const{
@@ -640,7 +620,7 @@ void Game::game(){
     if (AI_MOVES){
         for (int i = 0 ; i < (int)players.size() ; i++){
             if (players[i].get_id() >= ID_AI)
-                MV.push_back({(players[i].get_id()), "moves.csv"});
+                MV.push_back({(players[i].get_id()), MOVES_FILE});
         }
     }
 
@@ -689,40 +669,54 @@ void Game::game(){
                     break;
             }
 
-            do{
-                std::cout << CLEAR;
-                players[j].print(1);
-                std::cout << "\n\n";
+            if (get_players_id(j) >= ID_AI){            //ai
+                C = MV[get_players_id(j) - ID_AI].AI_play_ML(*this, j, first_player);
+            }
+            else{                                       //real player
+                do{
+                    std::cout << CLEAR;
+                    players[j].print(1);
+                    std::cout << "\n\n";
 
-                print_jeu(first_player);
-                std::cout << "\n\n\n";
+                    print_jeu(first_player);
+                    std::cout << "\n\n\n";
 
-                players[j].print_hand();
-                std::cout << "\nJouer la carte : ";
-                C = prompt_card();
+                    players[j].print_hand();
+                    std::cout << "\nJouer la carte : ";
+                    C = prompt_card();
 
-                l++;
-            } while ((!players[j].get_hand()->is_in(C) || !is_move_possible(C, j)) && l < 20);
+                    l++;
+                } while ((!players[j].get_hand()->is_in(C) || !is_move_possible(C, j)) && l < 20);
+
+            }
 
             players[j].give_hand_card(C, &jeu);
             j++;
         }
 
+        std::cout << CLEAR;
+        players[j].print(1);
+        std::cout << "\n\n";
+        print_jeu(first_player);
+        std::cout << "\n\n";
+        sleep(SLEEPTIME);
+
         if (AI_MOVES){
             for (int k = 0 ; k < (int)MV.size() ; k++){
                 MV[k].add(MV[k].get_id(), *this, first_player);
+                sleep(SLEEPTIME);
             }
 
         }
 
-        first_player = plis_winner(first_player);
+        first_player = pli_winner(first_player);
         jeu.give_all_cards(players[first_player].get_plis());
 
     }
 
     if (AI_MOVES){
         for (int i = 0 ; i < (int)MV.size() ; i++)
-            MV[i].save_in_file("moves.csv");
+            MV[i].save_in_file(MOVES_FILE);
     }
 
     if (id_preneurs[1] != -1)

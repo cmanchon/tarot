@@ -135,7 +135,7 @@ Card Game::AI_play(int ind, int first_player){
             possible_moves.push_back(i);
     }
 
-    int leader = plis_winner(first_player);
+    int leader = pli_winner(first_player);
 
     bool is_mate = false;
     if ((is_preneur(ind) && is_preneur(leader)) || (!is_preneur(ind) && !is_preneur(leader)))
@@ -281,30 +281,82 @@ void Moves::save_in_file(std::string filename){
 
 
 
-Deck Moves::relevant_moves(Game G, int first_player) const{
-    Deck RM;
+std::vector<Deck> Moves::relevant_moves(Game G, int first_player) const{
+    std::vector<Deck> RM;
+    for (int i = 0 ; i < 4 ; i++)
+        RM.push_back({});
 
-    if (first_player == G.get_players_ind(player_id)){ //???
+    if (first_player == G.get_players_ind(player_id)){ 
         for (int i = 0 ; i < (int)moves.size() ; i++){
-            if (moves[i].value >= 2 && are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0))){
-                RM.add_card(moves[i].cards.get_card(0));
+            if (are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0))){
+                RM[moves[i].value].add_card(moves[i].cards.get_card(0));
             }
         }
 
-        return RM;
     }
-
-
-    for (int i = 0 ; i < (int)moves.size() ; i++){
-        if (moves[i].value >= 2 && are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0)) && (!moves[i].is_mate[0] || moves.size() == 5)){
-            for (int k = 0 ; k < (int)moves[i].is_mate.size() ; k++){
-                if (moves[i].is_mate[k])
-                    RM.add_card(moves[i].cards.get_card(k));
+            
+    else{
+        Card winning_card_Game = G.get_pli().get_card(G.get_pli().winner());
+        Card winning_card_move;
+        for (int i = 0 ; i < (int)moves.size() ; i++){
+            winning_card_move = moves[i].cards.get_card(moves[i].cards.winner());
+            if (are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0)) && are_similar(winning_card_move, winning_card_Game)){
+                    for (int k = 0 ; k < moves[i].cards.size() ; k++){
+                        if ((G.are_mates(G.get_players_ind(player_id), G.pli_winner(first_player))
+                            && moves[i].is_mate[k] == moves[i].is_mate[moves[i].cards.winner()])
+                            || 
+                            (!G.are_mates(G.get_players_ind(player_id), G.pli_winner(first_player))
+                            && moves[i].is_mate[k] != moves[i].is_mate[moves[i].cards.winner()]))
+                        {
+                                //IA et winner sont mate $
+                                if (moves[i].value > 2 && moves[i].cards.get_card(k).get_value() < 10) //carte faible
+                                    RM[moves[i].value-2].add_card(moves[i].cards.get_card(k));
+                                else
+                                    RM[moves[i].value].add_card(moves[i].cards.get_card(k));
+                        }
+                    }
+                
             }
         }
+
     }
 
 
 
     return RM;
+}
+
+
+Card Moves::AI_play_ML(Game G, int ind, int first_player){
+    std::vector<Deck> RM = relevant_moves(G, first_player);
+    int rng = -1;
+    srand((unsigned) time(NULL));
+    Card C;
+
+
+
+    if (RM[0].size() > 0 || RM[1].size() > 0 || RM[2].size() > 0 || RM[3].size() > 0){
+        int i = 0;
+        int v = 3;
+        while (v >= 0 || i < RM[0].size()){
+            while (i == RM[v].size()){
+                i = 0;
+                v--;
+            }
+            if (v >= 0 && i < RM[v].size() && G.is_move_possible(RM[v].get_card(i), ind)){
+                C = RM[v].get_card(i);
+                return C;
+            }
+            i++;
+        }
+    }
+
+
+    do {
+        rng = rand() % G.get_players_hand_size(ind);
+        C = G.get_players_card(ind, rng);
+
+    }while (!G.is_move_possible(C, ind));
+    return C;
+
 }

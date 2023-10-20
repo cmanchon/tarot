@@ -10,6 +10,7 @@
 #define APPEL_ROI_BEFORE_ECART false
 
 #define AI_MOVES true
+#define MOVES_FILE "src/moves.csv"
 
 
 class Game{
@@ -33,16 +34,19 @@ class Game{
         void print_all_cards() const;
 
         bool is_preneur(int ind) const;
+        bool are_mates(int ind1, int ind2) const{return is_preneur(ind1) == is_preneur(ind2);};
 
         int nb_players(){return (int)players.size();};
         Deck get_pli(){return jeu;};
-        int get_players_id(int ind){return players[ind].get_id();};
+        int get_players_id(int ind)const {return players[ind].get_id();};
         int get_players_ind(int id)const;
+        Card get_players_card(int player_ind, int card_ind){return players[player_ind].get_hand()->get_card(card_ind);};
+        int get_players_hand_size(int player_ind){return players[player_ind].get_hand()->size();};
         int jeu_points(){return jeu.count_points();};
 
         Card prompt_card() const;
         void appel_roi();
-        int plis_winner(int first_player) const;
+        int pli_winner(int first_player) const{return jeu.winner(first_player);};
         bool is_move_possible(Card C, int player_id) const;
 
         void deal_cards();

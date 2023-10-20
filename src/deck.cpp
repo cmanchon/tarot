@@ -102,6 +102,27 @@ int Deck::highest_atout() const{
 }
 
 
+int Deck::winner(int first_player) const{
+    //returns the ind of the winner of the pli
+    //  if first_player == 0 : equivalent of returning the ind of the winner card
+    if (deck.size() == 0)
+        return -1;
+    int value = deck[0].get_value();
+    char color = deck[0].get_color();
+    int res = first_player;
+    for (int i = 0 ; i < (int)deck.size() ; i++){
+        if ((deck[i].get_value() > value && color != 'A' && deck[i].get_color() == color) 
+        || (color == 'A' && deck[i].get_color() == 'A' && value < deck[i].get_value())
+        || (color != 'A' && deck[i].get_color() == 'A' && deck[i].get_value() != 0)){
+            value = deck[i].get_value();
+            color = deck[i].get_color();
+            res = (first_player + i) % deck.size();
+        }
+    }
+
+    return res;
+}
+
 
 
 void Deck::add_card(Card C){

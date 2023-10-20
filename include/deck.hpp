@@ -29,6 +29,7 @@ class Deck{
         bool has_color(char color) const;
         bool has_atout_higher_than(int value) const;
         int highest_atout() const;
+        int winner(int first_player = 0) const;
 
         void add_card(Card C);
         void give_card(Deck *receiver);
