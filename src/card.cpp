@@ -62,8 +62,15 @@ void Card::print() const{
 
 }
 
-
+bool Card::is_bout() const{
+    if (value == 21 || value == 0 || (value == 1 && color == 'A'))
+        return true;
+    else
+        return false;
+}
 
 bool operator==(const Card& A, const Card& B){
     return (A.color == B.color && A.value == B.value);
 }
+
+

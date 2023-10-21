@@ -234,6 +234,12 @@ void print_moves(std::vector<Moves> MV){
 
 
 bool are_similar(Card A, Card B){
+    if (A.is_bout() || B.is_bout()){
+        if (A == B)
+            return true;
+        else
+            return false;
+    }
     if (A == B 
     || (A.get_color() == 'A' && B.get_color() == 'A' && A.get_value() > 15 && B.get_value() > 15)
     || (A.get_color() == 'A' && B.get_color() == 'A' && A.get_value() < 9 && B.get_value() < 9)
@@ -288,9 +294,8 @@ std::vector<Deck> Moves::relevant_moves(Game G, int first_player) const{
 
     if (first_player == G.get_players_ind(player_id)){ 
         for (int i = 0 ; i < (int)moves.size() ; i++){
-            if (are_similar(moves[i].cards.get_card(0), G.get_pli().get_card(0))){
+            if (moves[i].value >= 2 && moves[i].is_mate[0])
                 RM[moves[i].value].add_card(moves[i].cards.get_card(0));
-            }
         }
 
     }
@@ -343,9 +348,13 @@ Card Moves::AI_play_ML(Game G, int ind, int first_player){
                 i = 0;
                 v--;
             }
-            if (v >= 0 && i < RM[v].size() && G.is_move_possible(RM[v].get_card(i), ind)){
-                C = RM[v].get_card(i);
-                return C;
+            if (v >= 0 && i < RM[v].size()){
+                for(int j = 0 ; j < G.get_players_hand_size(ind) ; j++){
+                    if (are_similar(G.get_players_card(ind, j), RM[v].get_card(i)) && G.is_move_possible(G.get_players_card(ind, j), ind)){
+                        C = G.get_players_card(ind, j);
+                        return C;
+                    }
+                }
             }
             i++;
         }
@@ -357,6 +366,8 @@ Card Moves::AI_play_ML(Game G, int ind, int first_player){
         C = G.get_players_card(ind, rng);
 
     }while (!G.is_move_possible(C, ind));
+
+
     return C;
 
 }

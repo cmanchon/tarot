@@ -463,6 +463,7 @@ void Game::start_game(){
 
 
     id_preneur = ind_highest;
+    id_preneurs[1] = -1;
 
 
     std::cout << CLEAR;

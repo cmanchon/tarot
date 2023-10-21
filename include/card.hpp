@@ -35,6 +35,7 @@ class Card{
         void print() const;
         int get_value() const{return value;};
         char get_color() const{return color;};
+        bool is_bout() const;
 
 
         friend bool operator==(const Card&, const Card&);
