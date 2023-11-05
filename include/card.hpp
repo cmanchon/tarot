@@ -19,7 +19,7 @@
 #define BOLD "\033[1;37m"
 #define END_FORMAT "\033[0m"
 #define CLEAR "\033[2J\033[H"
-#define SLEEPTIME 3
+#define SLEEPTIME 0
 #define FLUSH_CIN std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n')
 
 class Card{

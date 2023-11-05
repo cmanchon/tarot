@@ -108,7 +108,7 @@ void Game::AI_ecart(){
         }
     } while(!sorted);
 
-    sleep(2); 
+    sleep(SLEEPTIME/2); 
 
     int i = 0;
     while (players[id_preneur].get_plis()->size() < ecart_size){
@@ -186,41 +186,54 @@ Moves::Moves(int id, std::string filename): player_id(id){
     while (file.peek() != EOF){
         file >> value;
         file.get();
-
-        while (file.peek() != ','){
+        file.get();
+        while ((char)file.peek() != ','){
             file >> card_value >> card_color;
             cards.add_card({card_value, card_color});
+            file.get();
         }
 
         file.get();
         while (file.peek() != '\n'){
             file >> tmp;
             is_mate.push_back(tmp);
+            file.get();
         }
 
-        // file.get();
+        file.get();
         moves.push_back({value, cards, is_mate});
 
         cards.set_empty();
         is_mate.clear();
     }
 
+}
+
+void Moves::print(int ind) const{
+    if (ind < 0 || ind >= (int)moves.size()){
+        std::cerr << "error Moves::print(int ind): ind out of range\n";
+        exit(EXIT_FAILURE);
+    }
+    std::cout << "Value: " << moves[ind].value << "\n";
+    moves[ind].cards.print("\t");
+    for (int j = 0 ; j < (int)moves[ind].is_mate.size() ; j++){
+        if (moves[ind].is_mate[j])
+            std::cout << "MATE";
+        std::cout << "\t"; 
+    }
+    std::cout << "\n";
+
 
 }
+
+
 
 void Moves::print() const{
     if (moves.size() == 0)
         std::cout << "no moves.\n";
     else{
         for (int i = 0 ; i < (int)moves.size() ; i++){
-            std::cout << "Value: " << moves[i].value << "\n";
-            moves[i].cards.print("\t");
-            for (int j = 0 ; j < (int)moves[i].is_mate.size() ; j++){
-                if (moves[i].is_mate[j])
-                    std::cout << "MATE";
-                std::cout << "\t"; 
-            }
-            std::cout << "\n";
+            print(i);
         }
 
     }
@@ -265,7 +278,7 @@ void Moves::save_in_file(std::string filename){
     }
 
     for (int i = 0 ; i < (int)moves.size() ; i++){
-        file << moves[i].value << ","; 
+        file << moves[i].value << " ,"; 
         for (int j = 0 ; j < moves[i].cards.size() ; j++){
             file << moves[i].cards.get_card(j).get_value() << moves[i].cards.get_card(j).get_color() << ' '; 
         }

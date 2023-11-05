@@ -24,6 +24,7 @@ class Deck{
         Card get_card(int index) const{return deck[index];};
         int nb_bouts() const;
         int nb_atouts() const;
+        int is_empty() const{return deck.empty();};
 
         bool is_in(Card C) const;
         bool has_color(char color) const;

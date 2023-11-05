@@ -14,11 +14,13 @@ struct Move{
     }
 
     Move(int id, Game G, int first_player){
+        std::cout << "id : " << id;
+
         cards = G.get_pli();
 
         int i = first_player;
         while ((int)is_mate.size() < G.nb_players()){
-            if (G.is_preneur(id) == G.is_preneur(i))
+            if (G.are_mates(G.get_players_ind(id), i))
                 is_mate.push_back(true);
             else
                 is_mate.push_back(false);
@@ -29,8 +31,8 @@ struct Move{
         }
 
         //on détermine la value
-        if (G.is_preneur(G.get_players_id(G.pli_winner(first_player))) == G.is_preneur(id)){
-            if (G.jeu_points() >= 2 * G.nb_players())
+        if (G.are_mates(G.pli_winner(first_player), G.get_players_ind(id))){    
+            if (G.jeu_points() >= 1.5 * G.nb_players())
                 value = 3;
             else
                 value = 2;
@@ -55,8 +57,10 @@ class Moves{
         Moves(int id = -1, std::string filename = "");     //csv maybe
         ~Moves(){};
 
+        void print(int ind) const;
         void print() const;
         int get_id() const{return player_id;};
+        int size() const{return (int) moves.size();};
 
         void add(int id, Game G, int first_player){moves.push_back({id, G, first_player});};
 

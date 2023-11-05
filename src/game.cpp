@@ -56,7 +56,7 @@ void Game::print_all_cards() const{
 }
 
 bool Game::is_preneur(int ind) const{
-    if (id_preneur == ind || id_preneurs[1] == ind || id_preneur == get_players_ind(ind) || id_preneurs[1] == get_players_ind(ind))
+    if (id_preneur == ind || id_preneurs[1] == ind)
         return true;
     else 
         return false;
@@ -298,7 +298,7 @@ void Game::sort_hands(){
 void Game::print_result(int score_def, int points_preneur) const{
     std::cout << CLEAR;
 
-    std::cout << "Player " << BOLD << id_preneur+1 << END_FORMAT;
+    std::cout << "Player " << BOLD << players[id_preneur].get_id() << END_FORMAT;
     if (score_def < 0){
         std::cout << " a réussi son contrat :\n\n";
     }
@@ -361,10 +361,26 @@ void Game::print_result(int score_def, int points_preneur) const{
 
     std::cout << "\n\nTOTAL = " << -score_def;
     if (id_preneurs[1] != -1)
-        std::cout << "Player " << BOLD << id_preneurs[1]+1 << END_FORMAT << "étant en équipe avec le preneur, il gagne aussi " << BOLD << -score_def << END_FORMAT << " points.\n\n";
-    std::cout << "\n\n\nLes autres joueurs gagnent " << score_def << " points.\n\n";
+        std::cout << "Player " << BOLD << id_preneurs[1]+1 << END_FORMAT << "étant en équipe avec le preneur, il "<< (score_def > 0 ? "perd" : "gagne") << " aussi  " << BOLD << -score_def << END_FORMAT << " points.\n\n";
+    std::cout << "\n\n\nLes autres joueurs " << (score_def > 0 ? "gagnent" : "perdent") << " " << score_def << " points.\n\n";
 
 }
+
+
+void Game::jeu_to_players_plis(int ind, int ind_excuse){
+    while (!jeu.is_empty()){
+        if (jeu.get_card(jeu.size()-1) == (Card){0, 'A'}){      //excuse
+            jeu.give_card(players[ind_excuse].get_hand());
+            int i = 0;
+            while (players[ind_excuse].get_hand()->get_card(i).get_color() == 'A' || players[ind_excuse].get_hand()->get_card(i).get_value() >= 10)
+                i++;
+            players[ind_excuse].get_hand()->give_card(&jeu, i, i+1);
+        }
+        else
+            jeu.give_card(players[ind].get_hand());
+    }
+}
+
 
 
 
@@ -406,7 +422,7 @@ void Game::start_game(){
             players[i].print();
             if (players[i].get_id() >= ID_AI){
                 
-                players[i].print_hand();
+                // players[i].print_hand();
 
                 choix = AI_choose_contrat(i);
                 std::cout << "\n\nLe joueur " << players[i].get_id() << " (IA) a choisi une ";
@@ -533,9 +549,6 @@ void Game::start_game(){
             std::cout << "Le joueur " << BOLD << players[id_preneur].get_id() << END_FORMAT << " fait son écart...\n\n";
             AI_ecart();
 
-            players[id_preneur].get_hand()->print("\t");
-            players[id_preneur].get_plis()->print("\t");
-            sleep(10);
 
             sleep(SLEEPTIME);
         }
@@ -594,12 +607,12 @@ void Game::start_game(){
     }
     else if (highest_choix == GARDE_SANS){
         //chien dans les plis du preneur mais il fait pas d'écart
-        std::cout << ".\nLe chien est mis dans les plis du preneur. Il ne peut pas faire d'écart.\n";
+        std::cout << "\nLe chien est mis dans les plis du preneur. Il ne peut pas faire d'écart.\n";
         chien.give_all_cards(players[id_preneur].get_plis());
     }
     else if (highest_choix == GARDE_CONTRE){
         //chien dans les plis de la défense, du coup on peut les laisser dans chien pcq on compte que les points du preneur 
-        std::cout << ".\nLe chien est mis dans les plis de la défense. Le preneur ne peut pas faire d'écart.\n";
+        std::cout << "\nLe chien est mis dans les plis de la défense. Le preneur ne peut pas faire d'écart.\n";
     }
 
 
@@ -607,9 +620,9 @@ void Game::start_game(){
     
     if (players.size() == 5 && !APPEL_ROI_BEFORE_ECART){
         appel_roi();
+        sleep(SLEEPTIME);
     }
 
-    sleep(SLEEPTIME);
 
 }
 
@@ -620,10 +633,13 @@ void Game::game(){
 
     if (AI_MOVES){
         for (int i = 0 ; i < (int)players.size() ; i++){
-            if (players[i].get_id() >= ID_AI)
+            if (players[i].get_id() >= ID_AI){
                 MV.push_back({(players[i].get_id()), MOVES_FILE});
+            }
         }
     }
+    
+    sleep(SLEEPTIME);
 
     srand((unsigned) time(NULL));
     int first_player = rand() % players.size();
@@ -658,6 +674,8 @@ void Game::game(){
     Card C;
     int l = 0;
     int j;
+    int ind_excuse = -1;
+
     for (int i = 0 ; i < nb_plis_total ; i++){
         l = 0;
         j = first_player;
@@ -690,7 +708,8 @@ void Game::game(){
                 } while ((!players[j].get_hand()->is_in(C) || !is_move_possible(C, j)) && l < 20);
 
             }
-
+            if (C == (Card){0, 'A'})
+                ind_excuse = j;
             players[j].give_hand_card(C, &jeu);
             j++;
         }
@@ -703,15 +722,14 @@ void Game::game(){
         sleep(SLEEPTIME);
 
         if (AI_MOVES){
-            for (int k = 0 ; k < (int)MV.size() ; k++){
+            for (int k = 0 ; k < (int)MV.size() ; k++)
                 MV[k].add(MV[k].get_id(), *this, first_player);
-                sleep(SLEEPTIME);
-            }
 
         }
 
         first_player = pli_winner(first_player);
         jeu.give_all_cards(players[first_player].get_plis());
+        jeu_to_players_plis(first_player, ind_excuse);
 
     }
 

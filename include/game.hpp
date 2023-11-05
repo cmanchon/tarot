@@ -52,6 +52,7 @@ class Game{
         void deal_cards();
         void undeal_cards();
         void sort_hands();
+        void jeu_to_players_plis(int ind, int ind_excuse);
 
         void print_result(int score_def, int points_preneur) const;
 
