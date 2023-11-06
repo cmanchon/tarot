@@ -63,6 +63,23 @@ bool Game::is_preneur(int ind) const{
 }
 
 
+int Game::nb_AI() const{
+    int res = 0;
+    for (int i = 0 ; i < nb_players() ; i++){
+        if (get_players_id(i) >= ID_AI)
+            res++;
+    }
+    return res;
+}
+
+bool Game::is_AI(int ind) const{
+    if (get_players_id(ind) >= ID_AI)
+        return true;
+    else
+        return false;
+}
+
+
 int Game::get_players_ind(int id)const{
     for (int i = 0 ; i < (int)players.size() ; i++){
         if (players[i].get_id() == id)
@@ -285,6 +302,7 @@ void Game::deal_cards(){
 void Game::undeal_cards(){
     for (int i = 0 ; i < (int)players.size() ; i++){
         players[i].get_hand()->give_all_cards(&deck);
+        players[i].get_plis()->give_all_cards(&deck);
     }
     chien.give_all_cards(&deck);
 }
@@ -639,138 +657,172 @@ void Game::game(){
         }
     }
     
-    sleep(SLEEPTIME);
+    while (true){
+        deal_cards();
+        sleep(SLEEPTIME);
+        
+        srand((unsigned) time(NULL));
+        int first_player = rand() % players.size();
+        //si chelem -> preneur joue en premier
 
-    srand((unsigned) time(NULL));
-    int first_player = rand() % players.size();
-    //si chelem -> preneur joue en premier
+        /* 78 cartes
 
-    /* 78 cartes
+        5 joueurs : 3 dans l'écart donc 75 en jeu -> 15 plis
+        4 joueurs : 6 dans l'écart donc 72 en jeu -> 18 plis
+        3 joueurs : 6 dans l'écart donc 72 en jeu -> 24 plis 
+        2 joueurs : 12 dans l'écart donc 66 en jeu -> 33 plis */
 
-    5 joueurs : 3 dans l'écart donc 75 en jeu -> 15 plis
-    4 joueurs : 6 dans l'écart donc 72 en jeu -> 18 plis
-    3 joueurs : 6 dans l'écart donc 72 en jeu -> 24 plis 
-    2 joueurs : 12 dans l'écart donc 66 en jeu -> 33 plis */
+        int nb_plis_total;
+        switch (players.size())
+        {
+        case 5:
+            nb_plis_total = 15;
+            break;
+        case 4:
+            nb_plis_total = 18;
+            break;
+        case 3:
+            nb_plis_total = 24;
+            break;
+        case 2:
+            nb_plis_total = 33;
+            break;
+        default:
+            break;
+        }
 
-    int nb_plis_total;
-    switch (players.size())
-    {
-    case 5:
-        nb_plis_total = 15;
-        break;
-    case 4:
-        nb_plis_total = 18;
-        break;
-    case 3:
-        nb_plis_total = 24;
-        break;
-    case 2:
-        nb_plis_total = 33;
-        break;
-    default:
-        break;
-    }
+        Card C;
+        int l = 0;
+        int j;
+        int ind_excuse = -1;
 
-    Card C;
-    int l = 0;
-    int j;
-    int ind_excuse = -1;
+        for (int i = 0 ; i < nb_plis_total ; i++){
+            l = 0;
+            j = first_player;
+            while (j != first_player || (j == first_player && l == 0) ){
+                l = 1;
 
-    for (int i = 0 ; i < nb_plis_total ; i++){
-        l = 0;
-        j = first_player;
-        while (j != first_player || (j == first_player && l == 0) ){
-            l = 1;
+                if (j >= (int) players.size()){
+                    j = 0;
+                    if (first_player == j)
+                        break;
+                }
 
-            if (j >= (int) players.size()){
-                j = 0;
-                if (first_player == j)
-                    break;
+                if (get_players_id(j) >= ID_AI){            //ai
+                    C = MV[get_players_id(j) - ID_AI].AI_play_ML(*this, j, first_player);
+                }
+                else{                                       //real player
+                    do{
+                        std::cout << CLEAR;
+                        players[j].print(1);
+                        std::cout << "\n\n";
+
+                        print_jeu(first_player);
+                        std::cout << "\n\n\n";
+
+                        players[j].print_hand();
+                        std::cout << "\nJouer la carte : ";
+                        C = prompt_card();
+
+                        l++;
+                    } while ((!players[j].get_hand()->is_in(C) || !is_move_possible(C, j)) && l < 20);
+
+                }
+                if (C == (Card){0, 'A'})
+                    ind_excuse = j;
+                players[j].give_hand_card(C, &jeu);
+                j++;
             }
 
-            if (get_players_id(j) >= ID_AI){            //ai
-                C = MV[get_players_id(j) - ID_AI].AI_play_ML(*this, j, first_player);
-            }
-            else{                                       //real player
-                do{
-                    std::cout << CLEAR;
-                    players[j].print(1);
-                    std::cout << "\n\n";
+            std::cout << CLEAR;
+            players[j].print(1);
+            std::cout << "\n\n";
+            print_jeu(first_player);
+            std::cout << "\n\n";
+            sleep(SLEEPTIME);
 
-                    print_jeu(first_player);
-                    std::cout << "\n\n\n";
-
-                    players[j].print_hand();
-                    std::cout << "\nJouer la carte : ";
-                    C = prompt_card();
-
-                    l++;
-                } while ((!players[j].get_hand()->is_in(C) || !is_move_possible(C, j)) && l < 20);
+            if (AI_MOVES){
+                for (int k = 0 ; k < (int)MV.size() ; k++)
+                    MV[k].add(MV[k].get_id(), *this, first_player);
 
             }
-            if (C == (Card){0, 'A'})
-                ind_excuse = j;
-            players[j].give_hand_card(C, &jeu);
-            j++;
+
+            first_player = pli_winner(first_player);
+            jeu.give_all_cards(players[first_player].get_plis());
+            jeu_to_players_plis(first_player, ind_excuse);
+
+        }
+
+
+        if (id_preneurs[1] != -1)
+            players[id_preneurs[1]].get_plis()->give_all_cards(players[id_preneur].get_plis());
+
+        int score_preneur = players[id_preneur].count_score();
+
+        int score_def = players[id_preneur].check_contrat(score_preneur, players.size());
+        
+        // on donne les points aux non preneurs
+        for (int i = 0 ; i < (int)players.size() ; i++){
+            if (i == id_preneur)
+                continue;
+            else if (i == id_preneurs[1])
+                players[i].add_score(-score_def);
+            players[i].add_score(score_def);
         }
 
         std::cout << CLEAR;
-        players[j].print(1);
-        std::cout << "\n\n";
-        print_jeu(first_player);
-        std::cout << "\n\n";
+        std::cout << "Fin de la partie.\n\n";
+
+        if (players.size() == 2){
+            std::cout << "Le chien qui n'a pas été pris par le preneur :\n\n";
+            chien.print("\t");
+        }
+
+        sleep(SLEEPTIME*2);
+
+        //PRINT RANKING
+
+        print_result(score_def, score_preneur);
         sleep(SLEEPTIME);
 
-        if (AI_MOVES){
-            for (int k = 0 ; k < (int)MV.size() ; k++)
-                MV[k].add(MV[k].get_id(), *this, first_player);
+        for (int i = 0 ; i < (int)players.size() ; i++){
+            players[i].reset_comb();
+        }
+
+        char choice;
+        if (nb_AI() == nb_players()){
+                std::cout << "\nContinuer de jouer ? (Y/N) ";
+                std::cin >> choice;
+                if (choice == 'N' || choice == 'Q'){
+                    break;
+                }
+        }
+        else{
+            for (int i = 0 ; i < nb_players() ; i++){
+                if (!is_AI(i)){
+                    std::cout << "\nPlayer " << BOLD << get_players_id(i) << END_FORMAT << " :\nContinuer de jouer ? (Y/N) ";
+                    std::cin >> choice;
+                    if (choice == 'N' || choice == 'Q'){
+                        players.erase(players.begin() + i);
+                        i--;
+                    }
+                }
+            }
 
         }
 
-        first_player = pli_winner(first_player);
-        jeu.give_all_cards(players[first_player].get_plis());
-        jeu_to_players_plis(first_player, ind_excuse);
 
+        if (nb_players() < NB_MIN_PLAYERS)
+            break;
+        
+        undeal_cards();
     }
+
 
     if (AI_MOVES){
         for (int i = 0 ; i < (int)MV.size() ; i++)
             MV[i].save_in_file(MOVES_FILE);
     }
 
-    if (id_preneurs[1] != -1)
-        players[id_preneurs[1]].get_plis()->give_all_cards(players[id_preneur].get_plis());
-
-    int score_preneur = players[id_preneur].count_score();
-
-    int score_def = players[id_preneur].check_contrat(score_preneur, players.size());
-    
-    // on donne les points aux non preneurs
-    for (int i = 0 ; i < (int)players.size() ; i++){
-        if (i == id_preneur)
-            continue;
-        else if (i == id_preneurs[1])
-            players[i].add_score(-score_def);
-        players[i].add_score(score_def);
-    }
-
-    std::cout << CLEAR;
-    std::cout << "Fin de la partie.\n\n";
-
-    if (players.size() == 2){
-        std::cout << "Le chien qui n'a pas été pris par le preneur :\n\n";
-        chien.print("\t");
-    }
-
-    sleep(SLEEPTIME*2);
-
-    //PRINT RANKING
-
-    print_result(score_def, score_preneur);
-    sleep(SLEEPTIME);
-
-    for (int i = 0 ; i < (int)players.size() ; i++){
-        players[i].reset_comb();
-    }
 
 }

@@ -36,7 +36,9 @@ class Game{
         bool is_preneur(int ind) const;
         bool are_mates(int ind1, int ind2) const{return is_preneur(ind1) == is_preneur(ind2);};
 
-        int nb_players(){return (int)players.size();};
+        int nb_players()const {return (int)players.size();};
+        int nb_AI() const;
+        bool is_AI(int ind) const;
         Deck get_pli(){return jeu;};
         int get_players_id(int ind)const {return players[ind].get_id();};
         int get_players_ind(int id)const;
